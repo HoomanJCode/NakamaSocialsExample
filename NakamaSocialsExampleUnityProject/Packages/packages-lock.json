@@ -200,6 +200,12 @@
       },
       "url": "https://packages.unity.com"
     },
+    "indie.hoomanjcode.menu-views": {
+      "version": "file:MenuView-Package",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,
