@@ -8,6 +8,7 @@ public class GroupsListItem : MonoBehaviour
     [SerializeField] private Text nameOfGroup;
     [SerializeField] private Text descOfGroup;
     [SerializeField] private Text maxCount;
+    [SerializeField] private Toggle isPrivate;
     [SerializeField] private ButtonItem buttonTemplate;
 
     public MemberRankAtGroup Rank
@@ -28,6 +29,11 @@ public class GroupsListItem : MonoBehaviour
     public int MaxMembersCount
     {
         set => maxCount.text = value.ToString();
+    }
+
+    public bool IsPrivate
+    {
+        set => isPrivate.isOn = value;
     }
 
     private void Awake()

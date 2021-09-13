@@ -8,6 +8,7 @@ namespace Menu
     {
         [SerializeField] private InputField nameOfGroup;
         [SerializeField] private InputField descOfGroup;
+        [SerializeField] private Toggle isPrivate;
         [SerializeField] private Button createBtn;
 
         protected override void Init()
@@ -15,7 +16,8 @@ namespace Menu
             // ReSharper disable once AsyncVoidLambda
             createBtn.onClick.AddListener(async () =>
             {
-                await LoginMenu.Client.CreateGroupAsync(LoginMenu.Session, nameOfGroup.text, descOfGroup.text);
+                await LoginMenu.Client.CreateGroupAsync(LoginMenu.Session, nameOfGroup.text, descOfGroup.text, null,
+                    null, !isPrivate.isOn);
                 SyncMenuView.ChangeCurrentView<GroupsListMenu>();
             });
         }

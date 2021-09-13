@@ -12,6 +12,7 @@ namespace Menu
         private static string _groupId;
         [SerializeField] private InputField nameOfGroup;
         [SerializeField] private InputField descOfGroup;
+        [SerializeField] private Toggle isPrivate;
         [SerializeField] private Button updateBtn;
 
         public static void SetRequirements(IApiGroup group)
@@ -19,6 +20,7 @@ namespace Menu
             _groupId = group.Id;
             _instance.nameOfGroup.text = group.Name;
             _instance.descOfGroup.text = group.Description;
+            _instance.isPrivate.isOn = !group.Open;
         }
 
         protected override void Init()
@@ -27,7 +29,7 @@ namespace Menu
             // ReSharper disable once AsyncVoidLambda
             updateBtn.onClick.AddListener(async () =>
             {
-                await LoginMenu.Client.UpdateGroupAsync(LoginMenu.Session, _groupId, nameOfGroup.text, true,
+                await LoginMenu.Client.UpdateGroupAsync(LoginMenu.Session, _groupId, nameOfGroup.text, !isPrivate.isOn,
                     descOfGroup.text);
                 SyncMenuView.ChangeCurrentView<GroupsListMenu>();
             });

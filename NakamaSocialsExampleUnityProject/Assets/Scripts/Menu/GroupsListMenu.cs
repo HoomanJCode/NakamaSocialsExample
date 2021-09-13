@@ -59,6 +59,7 @@ namespace Menu
                 item.Name = receivedGroupData.Group.Name;
                 item.Description = receivedGroupData.Group.Description;
                 item.MaxMembersCount = receivedGroupData.Group.MaxCount;
+                item.IsPrivate = !receivedGroupData.Group.Open;
                 item.Rank = (MemberRankAtGroup) receivedGroupData.State;
                 item.gameObject.SetActive(true);
                 _spawnedItems.Add(item);
