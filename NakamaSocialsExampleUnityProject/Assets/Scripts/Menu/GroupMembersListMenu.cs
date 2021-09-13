@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Core;
 using MenuViews;
 using Nakama;
@@ -17,6 +18,7 @@ namespace Menu
         private static MemberRankAtGroup _rank;
         [SerializeField] private Button refreshBtn;
         [SerializeField] private GroupMembersListItem memberItemTemplate;
+        private readonly List<GroupMembersListItem> _spawnedMembers = new();
 
         public static void SetRequirements(IApiGroup group, MemberRankAtGroup rank)
         {
@@ -27,7 +29,7 @@ namespace Menu
 
         private void Refresh()
         {
-            if (_enumerator == null)
+            if (_enumerator != null)
                 EnumeratorRunner.Singletone.StopCoroutine(_enumerator);
             _enumerator = RefreshEnumerator();
             EnumeratorRunner.Singletone.StartCoroutine(_enumerator);
@@ -36,9 +38,12 @@ namespace Menu
         private IEnumerator RefreshEnumerator()
         {
             //request members of group
-            var membersRequest = Connection.Client.ListGroupUsersAsync(Connection.Session, _groupId, null, 20, "");
+            var membersRequest = LoginMenu.Client.ListGroupUsersAsync(LoginMenu.Session, _groupId, null, 20, "");
             //wait
-            yield return membersRequest;
+            yield return new WaitUntil(() => membersRequest.IsCompleted);
+            //remove last spawned items
+            foreach (var member in _spawnedMembers) Destroy(member.gameObject);
+            _spawnedMembers.Clear();
             //spawn members ui
             foreach (var groupUser in membersRequest.Result.GroupUsers)
             {
@@ -46,34 +51,41 @@ namespace Menu
                     .GetComponent<GroupMembersListItem>();
                 item.Rank = (MemberRankAtGroup) groupUser.State;
                 item.UserName = groupUser.User.Username;
+                item.gameObject.SetActive(true);
+                _spawnedMembers.Add(item);
 
                 async void Accept()
                 {
-                    await Connection.Client.AddGroupUsersAsync(Connection.Session, _groupId, new[] {groupUser.User.Id});
+                    await LoginMenu.Client.AddGroupUsersAsync(LoginMenu.Session, _groupId, new[] {groupUser.User.Id});
+                    Refresh();
                 }
 
                 async void Kick()
                 {
-                    await Connection.Client.KickGroupUsersAsync(Connection.Session, _groupId,
+                    await LoginMenu.Client.KickGroupUsersAsync(LoginMenu.Session, _groupId,
                         new[] {groupUser.User.Id});
+                    Refresh();
                 }
 
                 async void Promote()
                 {
-                    await Connection.Client.PromoteGroupUsersAsync(Connection.Session, _groupId,
+                    await LoginMenu.Client.PromoteGroupUsersAsync(LoginMenu.Session, _groupId,
                         new[] {groupUser.User.Id});
+                    Refresh();
                 }
 
                 async void Demote()
                 {
-                    await Connection.Client.DemoteGroupUsersAsync(Connection.Session, _groupId,
+                    await LoginMenu.Client.DemoteGroupUsersAsync(LoginMenu.Session, _groupId,
                         new[] {groupUser.User.Id});
+                    Refresh();
                 }
 
                 async void Ban()
                 {
-                    await Connection.Client.BanGroupUsersAsync(Connection.Session, _groupId,
+                    await LoginMenu.Client.BanGroupUsersAsync(LoginMenu.Session, _groupId,
                         new[] {groupUser.User.Id});
+                    Refresh();
                 }
 
                 switch ((MemberRankAtGroup) groupUser.State)
@@ -81,7 +93,7 @@ namespace Menu
                     case MemberRankAtGroup.SuperAdmin:
                         break;
                     case MemberRankAtGroup.Admin:
-                        if (_rank is MemberRankAtGroup.SuperAdmin)
+                        if (groupUser.User.Id != LoginMenu.Session.UserId && _rank is MemberRankAtGroup.SuperAdmin)
                         {
                             item.AddButton("Promote", Promote);
                             item.AddButton("Demote", Demote);

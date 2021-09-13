@@ -15,14 +15,18 @@ namespace Menu
     {
         [SerializeField] private InputField searchBox;
         [SerializeField] private GroupsListItem groupItemTemplate;
+        [SerializeField] private Button createGroup;
+        [SerializeField] private Button refreshBtn;
         private readonly List<GroupsListItem> _spawnedItems = new();
 
         private IEnumerator _refreshEnumerator;
 
         protected override void Init()
         {
+            refreshBtn.onClick.AddListener(Refresh);
             searchBox.onValueChanged.AddListener(_ => Refresh());
             groupItemTemplate.gameObject.SetActive(false);
+            createGroup.onClick.AddListener(ChangeCurrentView<CreateGroupMenu>);
         }
 
         private void Refresh()
@@ -36,13 +40,12 @@ namespace Menu
         private IEnumerator RefreshEnumerator()
         {
             //get my owned groups or joined groups at first
-            var getMyGroupsTask = Connection.Client.ListUserGroupsAsync(Connection.Session, null, 20, "");
+            var getMyGroupsTask = LoginMenu.Client.ListUserGroupsAsync(LoginMenu.Session, null, 20, null);
             //get other exist groups by search text
-            var getAllGroupsTask = Connection.Client.ListGroupsAsync(Connection.Session, $"{searchBox.text}%", 20);
+            var getAllGroupsTask = LoginMenu.Client.ListGroupsAsync(LoginMenu.Session, $"{searchBox.text}%", 20);
             //wait
-            yield return getMyGroupsTask;
-            yield return getAllGroupsTask;
-            //clear list
+            yield return new WaitUntil(() => getMyGroupsTask.IsCompleted && getAllGroupsTask.IsCompleted);
+            //clear last list for new items
             foreach (var item in _spawnedItems) Destroy(item.gameObject);
             _spawnedItems.Clear();
             //show my groups
@@ -62,7 +65,8 @@ namespace Menu
 
                 async void Leave()
                 {
-                    await Connection.Client.LeaveGroupAsync(Connection.Session, receivedGroupData.Group.Id);
+                    await LoginMenu.Client.LeaveGroupAsync(LoginMenu.Session, receivedGroupData.Group.Id);
+                    Refresh();
                 }
 
                 void Members()
@@ -74,7 +78,7 @@ namespace Menu
 
                 async void CancelRequest()
                 {
-                    await Connection.Client.LeaveGroupAsync(Connection.Session, receivedGroupData.Group.Id);
+                    await LoginMenu.Client.LeaveGroupAsync(LoginMenu.Session, receivedGroupData.Group.Id);
                 }
 
                 void UpdateGroup()
@@ -85,7 +89,8 @@ namespace Menu
 
                 async void Remove()
                 {
-                    await Connection.Client.DeleteGroupAsync(Connection.Session, receivedGroupData.Group.Id);
+                    await LoginMenu.Client.DeleteGroupAsync(LoginMenu.Session, receivedGroupData.Group.Id);
+                    Refresh();
                 }
 
                 switch ((MemberRankAtGroup) receivedGroupData.State)
@@ -126,6 +131,14 @@ namespace Menu
                 item.MaxMembersCount = group.MaxCount;
                 item.gameObject.SetActive(true);
                 _spawnedItems.Add(item);
+
+                async void JoinRequest()
+                {
+                    await LoginMenu.Client.JoinGroupAsync(LoginMenu.Session, group.Id);
+                    Refresh();
+                }
+
+                item.AddButton("Join Request", JoinRequest);
             }
         }
 

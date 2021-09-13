@@ -15,7 +15,7 @@ namespace Menu
             // ReSharper disable once AsyncVoidLambda
             createBtn.onClick.AddListener(async () =>
             {
-                await Connection.Client.CreateGroupAsync(Connection.Session, nameOfGroup.text, descOfGroup.text);
+                await LoginMenu.Client.CreateGroupAsync(LoginMenu.Session, nameOfGroup.text, descOfGroup.text);
                 SyncMenuView.ChangeCurrentView<GroupsListMenu>();
             });
         }
