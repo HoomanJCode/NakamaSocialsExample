@@ -2,12 +2,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GroupsListItem : MonoBehaviour
+public class GroupMembersListItem : MonoBehaviour
 {
     [SerializeField] private Text rank;
-    [SerializeField] private Text nameOfGroup;
-    [SerializeField] private Text descOfGroup;
-    [SerializeField] private Text maxCount;
+    [SerializeField] private Text userName;
     [SerializeField] private ButtonItem buttonTemplate;
 
     public MemberRankAtGroup Rank
@@ -15,19 +13,9 @@ public class GroupsListItem : MonoBehaviour
         set => rank.text = value.ToString();
     }
 
-    public string Name
+    public string UserName
     {
-        set => nameOfGroup.text = value;
-    }
-
-    public string Description
-    {
-        set => descOfGroup.text = value;
-    }
-
-    public int MaxMembersCount
-    {
-        set => maxCount.text = value.ToString();
+        set => userName.text = value;
     }
 
     private void Awake()
