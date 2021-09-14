@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Core;
+using Menu.Items;
 using MenuViews;
 using Nakama;
 using UnityEngine;
